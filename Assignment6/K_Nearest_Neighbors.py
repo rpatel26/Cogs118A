@@ -13,11 +13,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 ''' Loading Data '''
-data1 = sio.loadmat( 'ionosphere.mat' )
+data = sio.loadmat( 'ionosphere.mat' )
 
 ''' Organizing Data '''
-X1 = data1[ 'X' ].reshape( [351,34] )
-Y1 = data1[ 'Y' ].reshape( [-1,1] )
+X = data[ 'X' ].reshape( [351,34] )
+Y = data[ 'Y' ].reshape( [-1,1] )
 
 print "Starting Assignment\n"
 
@@ -41,7 +41,7 @@ def fixNan( X ):
 
 '''---------------------------------- convertLabels() --------------------------------------'''
 '''
-This function converts all the categorical labels into numerical values
+This function converts all the categorical labels into numerical values of binary class
 '''
 def convertLabels( Y, label ):
 	Y_shape = Y.shape
@@ -95,7 +95,7 @@ def KNNClassify( distance, Ytrain, K ):
 	return classification
 
 '''------------------------------------- KNNTest() ---------------------------------------- '''
-def KNNTest( classification, Ytest, K ):
+def KNNTest( classification, Ytest ):
 	print "Testing Data..."
 	result = classification + Ytest
 	numOfTestData = float(result.size)
@@ -104,22 +104,32 @@ def KNNTest( classification, Ytest, K ):
 		if i == 0:
 			misClassified = misClassified + 1
 	error = misClassified / numOfTestData
-	print error
+	return error
 
-''' crossValidation() '''
+'''---------------------------------------- KNN() ----------------------------------------- '''
+def KNN( Xtrain, Xtest, Ytrain, Ytest, K ):
+	distance = KNNTrain( Xtrain, Xtest, K )
+	classification = KNNClassify( distance, Ytrain, K )
+	error = KNNTest( classification, Ytest )
+	print "Classification Error = ", error
+
+'''---------------------------------  crossValidation() ------------------------------------'''
+def crossValidation():
+	print "Cross Valdating"
+
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-X1 = fixNan( X1 )
-Y1 = convertLabels( Y1, 'b' )
+X = fixNan( X )
+Y = convertLabels( Y, 'b' )
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 ''' ------------------------------ KNN Classification ------------------------------------- '''
 print "Starting KNN Classification"
-''' K = 1 '''
-Xtrain, Xtest, Ytrain, Ytest = splitData( X1, Y1, 0.2 )
+Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 
-K = 9
-distance = KNNTrain( Xtrain, Xtest, K )
-classification = KNNClassify( distance, Ytrain, K )
-KNNTest( classification, Ytest, K )
+K = 20
+KNN( Xtrain, Xtest, Ytrain, Ytest, K )
+
+
+
