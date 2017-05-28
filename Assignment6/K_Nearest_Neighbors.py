@@ -70,8 +70,8 @@ def splitData( X, Y, testSize ):
 
 '''------------------------------------- KNNTrain() ----------------------------------------'''
 def KNNTrain( Xtrain, Xtest, K):
-	print "K = ", K
-	print "Training Data..."
+	#print "Training Data..."
+	#print "K = ", K
 	trainShape = Xtrain.shape
 	testShape = Xtest.shape
 	distance = np.zeros( [trainShape[0], testShape[0]] )
@@ -83,7 +83,7 @@ def KNNTrain( Xtrain, Xtest, K):
 
 '''------------------------------------- KNNClassify() -----------------------------------------'''
 def KNNClassify( distance, Ytrain, K ):
-	print "Classificating Test Data..."
+	#print "Classificating Test Data..."
 	distShape = distance.shape
 	nearestNbr = np.zeros( [K, distShape[1]] )
 	
@@ -96,10 +96,10 @@ def KNNClassify( distance, Ytrain, K ):
 
 '''------------------------------------- KNNTest() ---------------------------------------- '''
 def KNNTest( classification, Ytest ):
-	print "Testing Data..."
+	#print "Testing Data..."
+	misClassified = 0
 	result = classification + Ytest
 	numOfTestData = float(result.size)
-	misClassified = 0
 	for i in result:
 		if i == 0:
 			misClassified = misClassified + 1
@@ -107,15 +107,38 @@ def KNNTest( classification, Ytest ):
 	return error
 
 '''---------------------------------------- KNN() ----------------------------------------- '''
-def KNN( Xtrain, Xtest, Ytrain, Ytest, K ):
+def KNN( Xtrain, Ytrain, Xtest, Ytest, K ):
 	distance = KNNTrain( Xtrain, Xtest, K )
 	classification = KNNClassify( distance, Ytrain, K )
 	error = KNNTest( classification, Ytest )
-	print "Classification Error = ", error
+	#print "Classification Error = ", error
+	return error
 
-'''---------------------------------  crossValidation() ------------------------------------'''
-def crossValidation():
-	print "Cross Valdating"
+'''----------------------------  K_Fold_crossValidation() ----------------------------------'''
+def K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest, num_folds = 5 ):
+	print( "Cross Valdating, %d folds" %(num_folds) )
+	K_range = np.array( [1, 3, 5, 7] )
+	err =  -1 * np.ones( [1, num_folds] )
+	min_error = 9999999.0
+	K = 0
+	Xtrain_shape = Xtrain.shape
+	for j in K_range:
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			newX_train = Xtrain[ lower : upper, : ]
+			newY_train = Ytrain[ lower : upper ]
+			newX_test = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_test = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			err[0,i] = KNN( newX_train, newY_train, newX_test, newY_test, j )
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg <= min_error:
+			min_error = avg
+			K = j
+	
+	return min_error, err, K
+
+
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -124,12 +147,27 @@ Y = convertLabels( Y, 'b' )
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-''' ------------------------------ KNN Classification ------------------------------------- '''
+''' ------------------------------ KNN Classification --------------------------------------'''
 print "Starting KNN Classification"
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 
-K = 20
-KNN( Xtrain, Xtest, Ytrain, Ytest, K )
+validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest )
+test_err = KNN( Xtrain, Ytrain, Xtest, Ytest, 1 )
+print "Validation error = ", validation_err
+print "Training Error = ", train_err
+print "Optimal K = ", K
+print "Testing data..."
+print "Test error = ", test_err
+print "\n\n"
 
+'''---------------------------------  60% Training, 40% Testing ----------------------------'''
+Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
 
+validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest )
+test_err = KNN( Xtrain, Ytrain, Xtest, Ytest, 1 )
+print "Validation error = ", validation_err
+print "Training Error = ", train_err
+print "Optimal K = ", K
+print "Testing data..."
+print "Test error = ", test_err
 
