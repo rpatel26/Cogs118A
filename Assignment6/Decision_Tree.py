@@ -103,6 +103,44 @@ def err_decisionTree( predict, Ytest ):
 			misClassified = misClassified + 1
 	error = misClassified / numOfTestData
 	return error
+
+'''------------------------------- decision_tree_classification() ------------------------------'''
+def decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, depth = None ):
+	predict = decision_tree( Xtrain, Ytrain, Xtest, depth )
+	error = err_decisionTree( predict, Ytest )
+	return error
+
+'''------------------------------- K_Fold_crossValidation() ------------------------------------'''
+def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_depth = 0
+	Xtrain_shape = Xtrain.shape
+	for j in range( 1,  Xtrain_shape[0] ):
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+			newX_test = Xtrain[ lower : upper, : ]
+			newY_test = Ytrain[ lower : upper ]
+			
+			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+			err_train[0,i] = decision_tree_classification( newX_train, newY_train, newX_train, newY_train, j )
+			err[0,i] = decision_tree_classification( newX_train, newY_train, newX_test, newY_test, j )
+		
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg <= validation_err:
+			validation_err = avg
+			optimal_depth = j
+			train_err = (np.sum(err_train)/ float( num_folds ) )
+
+	return validation_err, train_err, optimal_depth
+
 	
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -113,5 +151,24 @@ Y = convertLabels( Y, 'b' )
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''------------------------------ Decision Tree Classification ---------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
-predict = decision_tree( Xtrain, Ytrain, Xtest )
-err = err_decisionTree( predict, Ytest )
+validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
+print "Validation error = ", validation_err
+print "Training error = ", train_err
+print "Optimal depth = ", optimal_depth
+print "Testing on the optimal parameter..."
+test_err = decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+print "Test error = ", test_err
+print "\n\n"
+
+
+'''------------------------------- 60% training 40% testing ------------------------------------'''
+Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
+validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
+print "Validation error = ", validation_err
+print "Training error = ", train_err
+print "Optimal depth = ", optimal_depth
+print "Testing on the optimal parameter..."
+test_err = decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+print "Test error = ", test_err
+
+
