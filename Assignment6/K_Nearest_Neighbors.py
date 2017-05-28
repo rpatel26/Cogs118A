@@ -8,8 +8,6 @@ PID: A11850926
 import scipy.io as sio
 import matplotlib.pyplot as plt
 import numpy as np
-##from sklearn.svm import SVC
-##from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 
 ''' Loading Data '''
@@ -23,7 +21,13 @@ print "Starting Assignment\n"
 
 '''-------------------------------------- fixNan() -----------------------------------------'''
 '''
-This function replaces any NaN value of input data with zeros
+Function Name: fixNan()
+Function Prototype: def fixNan( X )
+Description: this function replaces any NaN data values with zeros. If there are no NaN values
+	then the original data set is returned
+Parameters: 
+	X - arg1 -- data to fix
+Return Value: modified data with NaN values replaced wth zeros or original data set
 '''
 def fixNan( X ):
 	print "Cleaning Data"
@@ -41,7 +45,15 @@ def fixNan( X ):
 
 '''---------------------------------- convertLabels() --------------------------------------'''
 '''
-This function converts all the categorical labels into numerical values of binary class
+Function Name: convertLabels()
+Function Prototype: def convertLabels( Y, labels )
+Description: this fuction convert all the categorical labels into numerical values of binary
+	class. If the categorical label is labeled as 'labels' then its set to -1, if not
+	then its set to +1.
+Parameters:
+	Y - arg1 -- dataset containing all the labels for the training and testing set
+	labels - arg2 -- categorical label that needs to be taken into account
+Return Value: dataset with the modified label values
 '''
 def convertLabels( Y, label ):
 	Y_shape = Y.shape
@@ -58,7 +70,18 @@ def convertLabels( Y, label ):
 
 '''------------------------------------- splitData() ---------------------------------------'''
 '''
-This function splits the input data into testing and training sets
+Function Name: splitData()
+Function Prototype: def splitData( X, Y, testSize )
+Description: this function splits the input data into testing and training sets
+Parameters:
+	X - arg1 -- data containing all the features
+	Y - arg2 -- data containing all the labels
+	testSize - arg3 -- size of the testing data, in the range of (0,1) exclusive
+Return Value: this function will return the following four datasets in this order
+	Xtrain -- new training set containing all the features
+	Xtest -- new testing set containing all the features
+	Ytrain -- new training set containin all the labels of the corresponding training set
+	Ytest -- new testing set containing all the labels of the corresponding testing set
 '''
 def splitData( X, Y, testSize ):
 	Xtrain, Xtest, Ytrain, Ytest = train_test_split( X, Y, test_size = testSize, random_state = 42 )
@@ -69,9 +92,17 @@ def splitData( X, Y, testSize ):
 
 
 '''------------------------------------- KNNTrain() ----------------------------------------'''
+'''
+Function Name: KNNTrain()
+Function Prototype: def KNNTrain( Xtrain, Xtest, K )
+Description: this function trains and fits the K Nearest Neighbor classifier
+Parameters: 
+	Xtrain - arg1 -- training set containing all the features
+	Xtest - arg2 -- testing set containing all the features
+	K -- arg3 -- number of nearest neighbor to classify
+Return Value: Eucledian distance betweent the training set and testing set
+'''
 def KNNTrain( Xtrain, Xtest, K):
-	#print "Training Data..."
-	#print "K = ", K
 	trainShape = Xtrain.shape
 	testShape = Xtest.shape
 	distance = np.zeros( [trainShape[0], testShape[0]] )
@@ -82,8 +113,17 @@ def KNNTrain( Xtrain, Xtest, K):
 	return distance
 
 '''------------------------------------- KNNClassify() -----------------------------------------'''
+'''
+Function Name: KNNClassify()
+Function Prototype: def KNNClassify( distance, Ytrain, K )
+Description: this function classify the K nearest neighbor of the testing set
+Parameters:
+	distance - arg1 -- data set containing the distance measure returned by KNNTrain()
+	Ytrain - arg2 -- data set containing labels for the training set
+	K - arg3 -- number of nearest neighbor to classify, should be the as KNNTrain()
+Return Value: classification matrix containing K nearest neighbor of each data in testing set
+'''
 def KNNClassify( distance, Ytrain, K ):
-	#print "Classificating Test Data..."
 	distShape = distance.shape
 	nearestNbr = np.zeros( [K, distShape[1]] )
 	
@@ -95,8 +135,17 @@ def KNNClassify( distance, Ytrain, K ):
 	return classification
 
 '''------------------------------------- KNNTest() ---------------------------------------- '''
+'''
+Function Name: KNNTest()
+Function Prototype: def KNNTest( classification, Ytest )
+Description: this function test the K nearest neighbor classifier and report the
+	classification error
+Parameter:
+	classification - arg1 -- clasification matrix returned by KNNClassify()
+	Ytest - agr2 -- data set containing labels for the testing set
+Return Value: classification error of the K Nearest Neighbor classifier
+'''
 def KNNTest( classification, Ytest ):
-	#print "Testing Data..."
 	misClassified = 0
 	result = classification + Ytest
 	numOfTestData = float(result.size)
@@ -107,14 +156,42 @@ def KNNTest( classification, Ytest ):
 	return error
 
 '''---------------------------------------- KNN() ----------------------------------------- '''
+'''
+Function Name: KNN()
+Function Prototype: def KNN( Xtrain, Ytrain, Xtest, Ytest, K )
+Description: this function runs K Nearest Neighbor classifier by calling the KNNTrain(),
+	KNNClassify() and KNNTest() function one after the other
+Parameter:
+	Xtrain - arg1 -- data set containing all the features of the training set
+	Ytrain - arg2 -- data set containing all the labels of the training set
+	Xtest - arg3 -- data set containing all the features of the testing set
+	Ytest - arg4 -- data set containing all the labels of the testing set
+	K - arg4 -- number of nearest neighbor to take into consideration
+Return Vale: classification error rate to of the K Nearest Neighbor classifier	
+'''
 def KNN( Xtrain, Ytrain, Xtest, Ytest, K ):
 	distance = KNNTrain( Xtrain, Xtest, K )
 	classification = KNNClassify( distance, Ytrain, K )
 	error = KNNTest( classification, Ytest )
-	#print "Classification Error = ", error
 	return error
 
 '''----------------------------  K_Fold_crossValidation() ----------------------------------'''
+'''
+Function Name: K_Fold_crossValidation()
+Function Prototype: def K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest, num_folds = 5 )
+Description: this function performs K Fold Cross-Validation on the K Nearest Neighbor
+	classifier with K = [ 1, 3, 5, 7 ]
+Parameter:
+	Xtrain - arg1 -- data set containing all the features of the training set
+	Ytrain - arg2 -- data set containing all the labels of the training set
+	Xtest - arg3 -- data set containing all the features of the testing set
+	Ytest - arg4 -- data set containing all the labels of the testing set
+	num_folds - opt arg5 -- number of folds to use
+Return Value: this function will return the following in this order:
+	min_error -- minimum validation error of the classifier
+	err -- training error on the non-validating set
+	K -- optimal value of K that provides the minimum validation error
+'''
 def K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest, num_folds = 5 ):
 	print( "Cross Valdating, %d folds" %(num_folds) )
 	K_range = np.array( [1, 3, 5, 7] )
@@ -139,7 +216,6 @@ def K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest, num_folds = 5 ):
 	return min_error, err, K
 
 
-
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 X = fixNan( X )
@@ -151,7 +227,7 @@ Y = convertLabels( Y, 'b' )
 print "Starting KNN Classification"
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 
-validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest )
+validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain, Xtest, Ytest, num_folds = 5 )
 test_err = KNN( Xtrain, Ytrain, Xtest, Ytest, 1 )
 print "Validation error = ", validation_err
 print "Training Error = ", train_err
