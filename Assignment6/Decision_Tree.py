@@ -6,7 +6,6 @@ PID: A11850926
 
 ''' Importing python packages '''
 import scipy.io as sio
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import tree
@@ -20,7 +19,7 @@ Y = data[ 'Y' ].reshape( [-1,1] )
 
 print "Starting Assignment\n"
 
-'''-------------------------------------- fixNan() -----------------------------------------'''
+'''------------------------------------------------ fixNan() ---------------------------------------------------'''
 '''
 Function Name: fixNan()
 Function Prototype: def fixNan( X )
@@ -44,7 +43,7 @@ def fixNan( X ):
 	
 	return newX
 
-'''---------------------------------- convertLabels() --------------------------------------'''
+'''-------------------------------------------- convertLabels() ------------------------------------------------'''
 '''
 Function Name: convertLabels()
 Function Prototype: def convertLabels( Y, labels )
@@ -69,7 +68,7 @@ def convertLabels( Y, label ):
 	newLabels = np.ravel( newLabels )
 	return newLabels
 
-'''--------------------------------------- splitData() -----------------------------------------'''
+'''----------------------------------------------- splitData() -------------------------------------------------'''
 '''
 Function Name: splitData()
 Function Prototype: def splitData( X, Y, testSize )
@@ -91,7 +90,7 @@ def splitData( X, Y, testSize ):
 	print "Test Size = ", testSize
 	return Xtrain, Xtest, Ytrain, Ytest
 
-'''--------------------------------- decision_tree_fit() ---------------------------------------'''
+'''----------------------------------------- decision_tree_fit() -----------------------------------------------'''
 '''
 Function Name: decision_tree_fit()
 Function Prototype: def decision_tree_fit( Xtrain, Ytrain, depth = None )
@@ -100,14 +99,19 @@ Parameters:
 	Xtrain - arg1 -- training dataset containing all the features
 	Ytrain - arg2 -- training dataset containing all the labels 
 	depth - opt agr3 -- depth of the decision tree (default = None )
+	view - opt arg4 -- boolean value specifying whether to view the classifier of not (default = False )
+	fileName - opt arg5 -- file name to be used for creating visualization
+				must be ".dot" filename (default = "tree.dot" )
 Return Value: object containing the fitted model of the training set
 '''
-def decision_tree_fit( Xtrain, Ytrain, depth = None ):
+def decision_tree_fit( Xtrain, Ytrain, depth = None, view = False, fileName = "tree.dot" ):
 	clf = tree.DecisionTreeClassifier( max_depth = depth )
 	clf = clf.fit( Xtrain, Ytrain )
+	if view == True:
+		visualize_data( clf, fileName )
 	return clf
 
-'''-------------------------------- decision_tree_predict() ------------------------------------'''
+'''---------------------------------------- decision_tree_predict() --------------------------------------------'''
 '''
 Function Name: decision_tree_predict()
 Function Prototype: def decision_tree_predict( Xtest, classifier )
@@ -121,12 +125,11 @@ def decision_tree_predict( Xtest, classifier ):
 	predict = classifier.predict( Xtest )
 	return predict
 
-'''-------------------------------- decision_tree_score() --------------------------------------'''
+'''---------------------------------------- decision_tree_score() ----------------------------------------------'''
 '''
 Function Name: decision_tree_score( Ytest, predict )
 Function Prototype: def decision_tree_score( Ytest, predict )
-Description: this function calculates the accuracy of the testing set based on the Decision Tree
-	classifier.
+Description: this function calculates the accuracy of the testing set based on the Decision Tree classifier.
 Parameters:
 	Ytest - arg1 -- testing dataset containing all the labels
 	predict - arg2 -- prediction object that is returned from decision_tree_predict()
@@ -142,32 +145,35 @@ def decision_tree_score( Ytest, predict ):
 	error = misClassified / numOfTestData
 	return error
 
-'''------------------------------------ decision_tree() ----------------------------------------'''
+'''-------------------------------------------- decision_tree() ------------------------------------------------'''
 '''
 Function Name: decision_tree()
 Function Prototype: def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None )
-Description: this function runs decision_tree_fit(), decision_tree_predict() and 
-	decision_tree_score() functions in that order
+Description: this function runs decision_tree_fit(), decision_tree_predict() and decision_tree_score() functions
+		in that order
 Parameters:
 	Xtrain - arg1 -- training dataset containing all the features
 	Ytrain - arg2 -- training dataset containing all the labels
 	Xtest - agr3 -- testing dataset containing all the features
 	Ytest - arg4 -- testing dataset containing all the labels
 	depth - opt arg5 -- depth of the Decsion Tree (Default = None )
+	view - opt arg4 -- boolean value specifying whether to view the classifier of not (default = False )
+	fileName - opt arg5 -- file name to be used for creating visualization
+				must be ".dot" filename (default = "tree.dot" )
 Return Value: classification error of the Decision Tree classifier
 '''
-def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None ):
-	clf = decision_tree_fit( Xtrain, Ytrain, depth )
+def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None, view = False, fileName = "tree.dot" ):
+	clf = decision_tree_fit( Xtrain, Ytrain, depth, view, fileName )
 	predict = decision_tree_predict( Xtest, clf )
 	error = decision_tree_score( Ytest, predict )
 	return error
 
-'''------------------------------- K_Fold_crossValidation() ------------------------------------'''
+'''--------------------------------------- K_Fold_crossValidation() --------------------------------------------'''
 '''
 Function Name: K_Fold_crossValidation()
 Function Prototype: def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 )
-Description: this function performs K Fold Cross-Validation on Decision Classifier to find the
-	optimal depth of the classifier
+Description: this function performs K Fold Cross-Validation on Decision Classifier to find th optimal depth of the
+		classifier
 Parameters:
 	Xtrain - arg1 -- training set containing the features
 	Ytrain - arg2 -- training set containing the labels
@@ -208,17 +214,33 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 
 	return validation_err, train_err, optimal_depth
 
-	
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-'''---------------------------- Testing Decision Tree Classifier -------------------------------'''
+
+'''------------------------------------------- visualize_data()  -----------------------------------------------'''
+'''
+Function Name: visualize_data()
+Function Prototype: def visualize_data( clf, fileName = "tree.dot" )
+Description: this function created a file containing a visualization of the Decision Tree classifier in the 
+	directory containing the source file
+Parameters:
+	clf - arg1 -- classifier object with an already fitted training data
+	fileName - opt arg2 -- filename to store the visualization
+Return Value: none
+'''
+def visualize_data( clf, fileName = "tree.dot" ):
+	print "Creating visualization..."
+	tree.export_graphviz( clf, out_file = fileName, filled = True, class_names = True )
+	print "Look for a file called %s in the directory containing the source file" %(fileName)
+
+'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+'''------------------------------------ Testing Decision Tree Classifier ---------------------------------------'''
 X = fixNan( X )
 Y = convertLabels( Y, 'b' )
 
-'''------------------------------ Decision Tree Classification ---------------------------------'''
+'''-------------------------------------- Decision Tree Classification -----------------------------------------'''
 print "Starting Decision Tree Classifier..."
 
-'''------------------------------ 80% Training, 20% Testing ------------------------------------'''
+'''-------------------------------------- 80% Training, 20% Testing --------------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
@@ -226,12 +248,12 @@ print "Validation error = ", validation_err
 print "Training error = ", train_err
 print "Optimal depth = ", optimal_depth
 print "Testing on the optimal parameter..."
-test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth, view = True, fileName = "test1.dot" )
 print "Test error = ", test_err
 print "\n\n"
 
 
-'''------------------------------ 60% Training, 40% Testing ------------------------------------'''
+'''-------------------------------------- 60% Training, 40% Testing --------------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
 
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
@@ -239,5 +261,6 @@ print "Validation error = ", validation_err
 print "Training error = ", train_err
 print "Optimal depth = ", optimal_depth
 print "Testing on the optimal parameter..."
-test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth, view = True, fileName = "test2.dot" )
 print "Test error = ", test_err
+

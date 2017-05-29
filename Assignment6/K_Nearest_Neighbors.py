@@ -9,6 +9,7 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+from mpl_toolkits.mplot3d import Axes3D
 
 ''' Loading Data '''
 data = sio.loadmat( 'ionosphere.mat' )
@@ -254,4 +255,3 @@ print "Training Error = ", train_err
 print "Optimal K = ", K
 print "Testing data..."
 print "Test error = ", test_err
-
