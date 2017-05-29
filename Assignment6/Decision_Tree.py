@@ -1,3 +1,8 @@
+'''
+Author: Ravi Patel
+Date: 05/28/2017
+PID: A11850926
+'''
 
 ''' Importing python packages '''
 import scipy.io as sio
@@ -64,7 +69,7 @@ def convertLabels( Y, label ):
 	newLabels = np.ravel( newLabels )
 	return newLabels
 
-'''------------------------------------- splitData() ---------------------------------------'''
+'''--------------------------------------- splitData() -----------------------------------------'''
 '''
 Function Name: splitData()
 Function Prototype: def splitData( X, Y, testSize )
@@ -86,15 +91,48 @@ def splitData( X, Y, testSize ):
 	print "Test Size = ", testSize
 	return Xtrain, Xtest, Ytrain, Ytest
 
-'''---------------------------------- decision_tree() ------------------------------------------'''
-def decision_tree( Xtrain, Ytrain, Xtest, depth = None ):
+'''--------------------------------- decision_tree_fit() ---------------------------------------'''
+'''
+Function Name: decision_tree_fit()
+Function Prototype: def decision_tree_fit( Xtrain, Ytrain, depth = None )
+Description: this function fit a decision tree model with a training set
+Parameters:
+	Xtrain - arg1 -- training dataset containing all the features
+	Ytrain - arg2 -- training dataset containing all the labels 
+	depth - opt agr3 -- depth of the decision tree (default = None )
+Return Value: object containing the fitted model of the training set
+'''
+def decision_tree_fit( Xtrain, Ytrain, depth = None ):
 	clf = tree.DecisionTreeClassifier( max_depth = depth )
 	clf = clf.fit( Xtrain, Ytrain )
-	predict = clf.predict( Xtest )
-	return predict	
+	return clf
 
-'''--------------------------------- err_decisionTree() ----------------------------------------'''
-def err_decisionTree( predict, Ytest ):
+'''-------------------------------- decision_tree_predict() ------------------------------------'''
+'''
+Function Name: decision_tree_predict()
+Function Prototype: def decision_tree_predict( Xtest, classifier )
+Description: this function predicts on a testing set using a decision tree classifier
+Parameters:
+	Xtest - arg1 -- testing dataset containing all the features
+	classifier - arg2 -- classificating object that is returned from decision_tree_fit()
+Return Value: object containing the predicted result of the classifier
+'''
+def decision_tree_predict( Xtest, classifier ):
+	predict = classifier.predict( Xtest )
+	return predict
+
+'''-------------------------------- decision_tree_score() --------------------------------------'''
+'''
+Function Name: decision_tree_score( Ytest, predict )
+Function Prototype: def decision_tree_score( Ytest, predict )
+Description: this function calculates the accuracy of the testing set based on the Decision Tree
+	classifier.
+Parameters:
+	Ytest - arg1 -- testing dataset containing all the labels
+	predict - arg2 -- prediction object that is returned from decision_tree_predict()
+Return Value: classification error of the Decision Tree Classifier
+'''
+def decision_tree_score( Ytest, predict ):
 	misClassified = 0
 	result = predict + Ytest
 	numOfTestData = float( result.size )
@@ -104,13 +142,41 @@ def err_decisionTree( predict, Ytest ):
 	error = misClassified / numOfTestData
 	return error
 
-'''------------------------------- decision_tree_classification() ------------------------------'''
-def decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, depth = None ):
-	predict = decision_tree( Xtrain, Ytrain, Xtest, depth )
-	error = err_decisionTree( predict, Ytest )
+'''------------------------------------ decision_tree() ----------------------------------------'''
+'''
+Function Name: decision_tree()
+Function Prototype: def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None )
+Description: this function runs decision_tree_fit(), decision_tree_predict() and 
+	decision_tree_score() functions in that order
+Parameters:
+	Xtrain - arg1 -- training dataset containing all the features
+	Ytrain - arg2 -- training dataset containing all the labels
+	Xtest - agr3 -- testing dataset containing all the features
+	Ytest - arg4 -- testing dataset containing all the labels
+	depth - opt arg5 -- depth of the Decsion Tree (Default = None )
+Return Value: classification error of the Decision Tree classifier
+'''
+def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None ):
+	clf = decision_tree_fit( Xtrain, Ytrain, depth )
+	predict = decision_tree_predict( Xtest, clf )
+	error = decision_tree_score( Ytest, predict )
 	return error
 
 '''------------------------------- K_Fold_crossValidation() ------------------------------------'''
+'''
+Function Name: K_Fold_crossValidation()
+Function Prototype: def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 )
+Description: this function performs K Fold Cross-Validation on Decision Classifier to find the
+	optimal depth of the classifier
+Parameters:
+	Xtrain - arg1 -- training set containing the features
+	Ytrain - arg2 -- training set containing the labels
+	num_folds - opt arg3 -- number of folds to make (Default = 5 )
+Return Value: this function returns the follwing values in this order
+	validation_err -- validation error corresponding to the optimal depth
+	train_err -- training error corresponding to the optimal depth
+	optimal_depth -- optimal depth for the Decision Tree classifier
+'''
 def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 	print "Cross Validating, %s folds..." %(num_folds)
 	err =  -1 * np.ones( [1, num_folds] )
@@ -119,6 +185,7 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 	train_err = 9999999.0
 	optimal_depth = 0
 	Xtrain_shape = Xtrain.shape
+	
 	for j in range( 1,  Xtrain_shape[0] ):
 		for i in range( num_folds ):
 			lower = i * Xtrain_shape[0] / num_folds
@@ -130,11 +197,11 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
 			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
 			
-			err_train[0,i] = decision_tree_classification( newX_train, newY_train, newX_train, newY_train, j )
-			err[0,i] = decision_tree_classification( newX_train, newY_train, newX_test, newY_test, j )
+			err_train[0,i] = decision_tree( newX_train, newY_train, newX_train, newY_train, j )
+			err[0,i] = decision_tree( newX_train, newY_train, newX_test, newY_test, j )
 		
 		avg = (np.sum( err ) / float( num_folds ) )
-		if avg <= validation_err:
+		if avg < validation_err:
 			validation_err = avg
 			optimal_depth = j
 			train_err = (np.sum(err_train)/ float( num_folds ) )
@@ -144,31 +211,33 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 	
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+'''---------------------------- Testing Decision Tree Classifier -------------------------------'''
 X = fixNan( X )
 Y = convertLabels( Y, 'b' )
 
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''------------------------------ Decision Tree Classification ---------------------------------'''
+print "Starting Decision Tree Classifier..."
+
+'''------------------------------ 80% Training, 20% Testing ------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
+
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
 print "Validation error = ", validation_err
 print "Training error = ", train_err
 print "Optimal depth = ", optimal_depth
 print "Testing on the optimal parameter..."
-test_err = decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
 print "Test error = ", test_err
 print "\n\n"
 
 
-'''------------------------------- 60% training 40% testing ------------------------------------'''
+'''------------------------------ 60% Training, 40% Testing ------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
+
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
 print "Validation error = ", validation_err
 print "Training error = ", train_err
 print "Optimal depth = ", optimal_depth
 print "Testing on the optimal parameter..."
-test_err = decision_tree_classification( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
+test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth )
 print "Test error = ", test_err
-
-

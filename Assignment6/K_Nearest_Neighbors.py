@@ -225,13 +225,14 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+'''------------------------ Testing K Nearest Neighbor Classifier --------------------------'''
 X = fixNan( X )
 Y = convertLabels( Y, 'b' )
 
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 ''' ------------------------------ KNN Classification --------------------------------------'''
 print "Starting KNN Classification"
+
+'''---------------------------- 80% Training, 20% Testing ----------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 
 validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 )
@@ -243,7 +244,7 @@ print "Testing data..."
 print "Test error = ", test_err
 print "\n\n"
 
-'''---------------------------------  60% Training, 40% Testing ----------------------------'''
+'''------------------------------  60% Training, 40% Testing -------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
 
 validation_err, train_err, K = K_Fold_crossValidation( Xtrain, Ytrain )
