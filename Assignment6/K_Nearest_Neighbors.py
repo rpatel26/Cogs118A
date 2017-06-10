@@ -1,7 +1,6 @@
 '''
 Author: Ravi Patel
-Date: 5/27/2017
-PID: A11850926
+Date: 05/28/2017
 '''
 
 ''' Importing python packages '''
@@ -109,7 +108,9 @@ def KNNTrain( Xtrain, Xtest, K):
 	distance = np.zeros( [trainShape[0], testShape[0]] )
 	for i in range( trainShape[0] ):
 		for j in range( testShape[0] ):
-			distance[ i, j] = np.linalg.norm( Xtrain[ i, : ] - Xtest[ j , : ] )
+			temp = Xtrain[ i, : ] - Xtest[ j, : ]
+			temp = temp.reshape( [trainShape[1] ,1] )
+			distance[ i, j] = np.linalg.norm( temp )
 	
 	return distance
 

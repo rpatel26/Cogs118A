@@ -1,7 +1,6 @@
 '''
 Author: Ravi Patel
 Date: 05/28/2017
-PID: A11850926
 '''
 
 ''' Importing python packages '''
@@ -9,6 +8,7 @@ import scipy.io as sio
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import tree
+from sklearn.ensemble import AdaBoostClassifier
 
 ''' Loading Data '''
 data = sio.loadmat( 'ionosphere.mat' )
@@ -231,6 +231,17 @@ def visualize_data( clf, fileName = "tree.dot" ):
 	tree.export_graphviz( clf, out_file = fileName, filled = True, class_names = True )
 	print "Look for a file called %s in the directory containing the source file" %(fileName)
 
+def adaboost_train( Xtrain, Ytrain, num_of_estimator = 50, learningRate = 1.0 ):
+	print "Adaboost testing..."
+	clf = AdaBoostClassifier( n_estimators = num_of_estimator, learning_rate = learningRate )
+	clf.fit( Xtrain, Ytrain )
+	return clf
+
+def adaboost_score( clf, Xtest, Ytest):
+	accuracy = clf.score( Xtest, Ytest )
+	print "accuracy = ", accuracy
+	print "error = ", ( 1 - accuracy )
+
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''------------------------------------ Testing Decision Tree Classifier ---------------------------------------'''
@@ -242,7 +253,10 @@ print "Starting Decision Tree Classifier..."
 
 '''-------------------------------------- 80% Training, 20% Testing --------------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
+clf = adaboost_train( Xtrain, Ytrain, num_of_estimator = 75, learningRate = 0.5 )
+adaboost_score( clf, Xtest, Ytest )
 
+'''
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
 print "Validation error = ", validation_err
 print "Training error = ", train_err
@@ -251,9 +265,10 @@ print "Testing on the optimal parameter..."
 test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth, view = True, fileName = "test1.dot" )
 print "Test error = ", test_err
 print "\n\n"
-
+'''
 
 '''-------------------------------------- 60% Training, 40% Testing --------------------------------------------'''
+'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.4 )
 
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )
@@ -263,4 +278,4 @@ print "Optimal depth = ", optimal_depth
 print "Testing on the optimal parameter..."
 test_err = decision_tree( Xtrain, Ytrain, Xtest, Ytest, optimal_depth, view = True, fileName = "test2.dot" )
 print "Test error = ", test_err
-
+'''
