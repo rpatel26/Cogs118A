@@ -8,7 +8,8 @@ import scipy.io as sio
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import tree
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import cross_val_score
 
 ''' Loading Data '''
 data = sio.loadmat( 'ionosphere.mat' )
@@ -231,13 +232,17 @@ def visualize_data( clf, fileName = "tree.dot" ):
 	tree.export_graphviz( clf, out_file = fileName, filled = True, class_names = True )
 	print "Look for a file called %s in the directory containing the source file" %(fileName)
 
-def adaboost_train( Xtrain, Ytrain, num_of_estimator = 50, learningRate = 1.0 ):
-	print "Adaboost testing..."
-	clf = AdaBoostClassifier( n_estimators = num_of_estimator, learning_rate = learningRate )
+def neural_network_train( Xtrain, Ytrain, num_layers = (100,), moment = 0.9 ):
+	print "Neural Network testing..."
+	clf = MLPClassifier( hidden_layer_sizes = num_layers, momentum = moment )
 	clf.fit( Xtrain, Ytrain )
 	return clf
 
-def adaboost_score( clf, Xtest, Ytest):
+def crossValidationScore( clf, Xtrain, Ytrain, num_of_folds = 5 ):
+	scores = cross_val_score( clf, Xtrain, Ytrain, cv = num_of_folds )
+	print "Scores = ", scores	
+
+def neural_network_score( clf, Xtest, Ytest):
 	accuracy = clf.score( Xtest, Ytest )
 	print "accuracy = ", accuracy
 	print "error = ", ( 1 - accuracy )
@@ -253,8 +258,9 @@ print "Starting Decision Tree Classifier..."
 
 '''-------------------------------------- 80% Training, 20% Testing --------------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
-clf = adaboost_train( Xtrain, Ytrain, num_of_estimator = 75, learningRate = 0.5 )
-adaboost_score( clf, Xtest, Ytest )
+clf = decision_tree_fit( Xtrain, Ytrain )
+crossValidationScore( clf, Xtrain, Ytrain, num_of_folds = 5 )
+#neural_network_score( clf, Xtest, Ytest )
 
 '''
 validation_err, train_err, optimal_depth = K_Fold_crossValidation( Xtrain, Ytrain )

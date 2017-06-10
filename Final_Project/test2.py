@@ -11,6 +11,7 @@ from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neural_network import MLPClassifier
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -333,6 +334,18 @@ def random_forest_score( clf, Xtest, Ytest ):
 def adaboost_train( Xtrain, Ytrain, num_of_estimator = 50, learningRate = 1.0 ):
 	clf = AdaBoostClassifier( n_estimator = num_of_estimator, learning_rate = learningRate )
 	clf.fit( Xtrain, Ytrain )
+	return clf
+
+'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+'''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
+''' MLPClassifier_train() '''
+'''
+Multi-layer Perceptron classifier
+momentum >= 0, momentum <= 1
+'''
+def MLPClassifier_train( Xtrain, Ytrain, num_layers = (100,), moment = 0.9 ):
+	clf = MLPClassifier( hidder_layer_sizes = num_layers, momentum = moment )
+	clf.fit( Xtrain, Xtest )
 	return clf
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
