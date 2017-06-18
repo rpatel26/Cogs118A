@@ -3,6 +3,7 @@ import csv
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 
 '''
 This function reads from a file and convert each line into a list and returns
@@ -32,7 +33,8 @@ def getLabel( orig_list ):
 			elif col == ' >50K':
 				Y[ row ] = 1
 
-	X = np.delete( my_list, -1, 1 )
+	#X = np.delete( my_list, -1, 1 )
+	X = np.delete( orig_list, -1, 1 )
 	return X, Y	
 
 '''
@@ -312,6 +314,13 @@ def convertFeatures( X ):
 			break
 	return newX
 
+'''
+This function one-hot-encodes the input matrix
+'''
+def One_Hot_Encoding( X ):
+	encoder = OneHotEncoder()
+	encoder.fit( X )
+	return encoder.transform( X )
 
 my_list = readFile( 'census.csv' )
 
@@ -325,7 +334,40 @@ print enc.feature_indices_
 '''
 
 newX = convertFeatures( X )
+print newX.shape
 
+'''
 enc = OneHotEncoder()
 enc.fit( newX )
 test2.testFunction()
+'''
+
+Xtrain, Xtest, Ytrain, Ytest = test2.splitData( newX, Y, 0.2 )
+print Xtrain.shape
+print Ytrain.shape
+
+'''
+clf = test2.SVM_train( Xtrain, Ytrain )
+err = test2.SVM_score( clf, Xtest, Ytest )
+print err
+'''
+
+print test2.MLP( Xtrain, Ytrain, Xtest, Ytest )
+
+val_err, train_err, k = test2.K_Fold_crossValidation_Adaboost( Xtrain, Ytrain )
+print "val_err = ", val_err
+print "train_err = ", train_err
+print "Opt_K = ", k
+
+'''
+val_err, train_err, opt_depth = test2.K_Fold_crossValidation_Decision_Tree( Xtrain, Ytrain, num_folds = 5 )
+
+print "val_err = ", val_err
+print "train_err = ", train_err
+print "opt_depth = ", opt_depth
+'''
+
+'''
+err = test2.decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = 25 )
+print err
+'''

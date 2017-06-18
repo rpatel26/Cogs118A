@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -114,9 +115,9 @@ def decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = None, view = False, fil
 	error = decision_tree_score( predict, Ytest )
 	return error
 
-'''--------------------------------------- K_Fold_crossValidation() --------------------------------------------'''
+'''--------------------------------------- K_Fold_crossValidation_Decision_Tree() --------------------------------------------'''
 '''
-Function Name: K_Fold_crossValidation()
+Function Name: K_Fold_crossValidation_Decision_Tree_Census()
 Function Prototype: def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 )
 Description: this function performs K Fold Cross-Validation on Decision Classifier to find th optimal depth of the
 		classifier
@@ -129,7 +130,7 @@ Return Value: this function returns the follwing values in this order
 	train_err -- training error corresponding to the optimal depth
 	optimal_depth -- optimal depth for the Decision Tree classifier
 '''
-def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
+def K_Fold_crossValidation_Decision_Tree( Xtrain, Ytrain, num_folds = 5 ):
 	print "Cross Validating, %s folds..." %(num_folds)
 	err =  -1 * np.ones( [1, num_folds] )
 	err_train = -1 * np.ones( [1, num_folds] )
@@ -138,7 +139,7 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 	optimal_depth = 0
 	Xtrain_shape = Xtrain.shape
 	
-	for j in range( 1,  Xtrain_shape[0] ):
+	for j in range( 1,  Xtrain_shape[0], 100 ):
 		for i in range( num_folds ):
 			lower = i * Xtrain_shape[0] / num_folds
 			upper = lower + ( Xtrain_shape[0] / num_folds)
@@ -157,6 +158,32 @@ def K_Fold_crossValidation( Xtrain, Ytrain, num_folds = 5 ):
 			validation_err = avg
 			optimal_depth = j
 			train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+
+	
+	print "initial round complete"
+
+	if optimal_err != 1:
+		for j in range( optimal_err - 100, optimal_err + 100, 10 ):
+			for i in range( num_folds ):
+				lower = i * Xtrain_shape[0] / num_folds
+				upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+				newX_test = Xtrain[ lower : upper, : ]
+				newY_test = Ytrain[ lower : upper ]
+				
+				newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+				newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+				err_train[0,i] = decision_tree( newX_train, newY_train, newX_train, newY_train, j )
+				err[0,i] = decision_tree( newX_train, newY_train, newX_test, newY_test, j )
+		
+			avg = (np.sum( err ) / float( num_folds ) )
+			if avg < validation_err:
+				validation_err = avg
+				optimal_depth = j
+				train_err = (np.sum(err_train)/ float( num_folds ) )
+			print "another round: j = ", j	
 
 	return validation_err, train_err, optimal_depth
 
@@ -179,72 +206,6 @@ def visualize_data( clf, fileName = "tree.dot" ):
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" '''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
-'''------------------------------------- KNNTrain() ----------------------------------------'''
-'''
-Function Name: KNNTrain()
-Function Prototype: def KNNTrain( Xtrain, Xtest, K )
-Description: this function trains and fits the K Nearest Neighbor classifier
-Parameters: 
-	Xtrain - arg1 -- training set containing all the features
-	Xtest - arg2 -- testing set containing all the features
-	K -- arg3 -- number of nearest neighbor to classify
-Return Value: Eucledian distance betweent the training set and testing set
-'''
-def KNNTrain( Xtrain, Xtest, K):
-	trainShape = Xtrain.shape
-	testShape = Xtest.shape
-	distance = np.zeros( [trainShape[0], testShape[0]] )
-	for i in range( trainShape[0] ):
-		for j in range( testShape[0] ):
-			temp = Xtrain[ i, : ] - Xtest[ j, : ]
-			temp = temp.reshape( [trainShape[1] ,1] )
-			distance[ i, j] = np.linalg.norm( temp )
-	
-	return distance
-
-'''------------------------------------- KNNClassify() -----------------------------------------'''
-'''
-Function Name: KNNClassify()
-Function Prototype: def KNNClassify( distance, Ytrain, K )
-Description: this function classify the K nearest neighbor of the testing set
-Parameters:
-	distance - arg1 -- data set containing the distance measure returned by KNNTrain()
-	Ytrain - arg2 -- data set containing labels for the training set
-	K - arg3 -- number of nearest neighbor to classify, should be the as KNNTrain()
-Return Value: classification matrix containing K nearest neighbor of each data in testing set
-'''
-def KNNClassify( distance, Ytrain, K ):
-	distShape = distance.shape
-	nearestNbr = np.zeros( [K, distShape[1]] )
-	
-	for i in range( distShape[1] ):
-		ind  = (distance[:,i]).argsort()[:K]
-		nearestNbr[:, i] = Ytrain[ind]
-	
-	classification = np.sign( np.sum( nearestNbr, axis = 0 ) )
-	return classification
-
-'''------------------------------------- KNNTest() ---------------------------------------- '''
-'''
-Function Name: KNNScore()
-Function Prototype: def KNNTest( classification, Ytest )
-Description: this function test the K nearest neighbor classifier and report the
-	classification error
-Parameter:
-	classification - arg1 -- clasification matrix returned by KNNClassify()
-	Ytest - agr2 -- data set containing labels for the testing set
-Return Value: classification error of the K Nearest Neighbor classifier
-'''
-def KNNScore( classification, Ytest ):
-	misClassified = 0
-	result = classification + Ytest
-	numOfTestData = float(result.size)
-	for i in result:
-		if i == 0:
-			misClassified = misClassified + 1
-	error = misClassified / numOfTestData
-	return error
-
 '''---------------------------------------- KNN() ----------------------------------------- '''
 '''
 Function Name: KNN()
@@ -260,10 +221,71 @@ Parameter:
 Return Vale: classification error rate to of the K Nearest Neighbor classifier	
 '''
 def KNN( Xtrain, Ytrain, Xtest, Ytest, K ):
-	distance = KNNTrain( Xtrain, Xtest, K )
-	classification = KNNClassify( distance, Ytrain, K )
-	error = KNNTest( classification, Ytest )
-	return error
+	clf = KNeighborsClassifier( n_neighbors = K )
+	clf.fit( Xtrain, Ytrain )
+	err = clf.score( Xtest, Ytest )
+	return err
+
+'''
+K_Fold_Cross_Validation_KNN()
+'''
+def K_Fold_crossValidation_KNN( Xtrain, Ytrain, num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_K = 0
+	Xtrain_shape = Xtrain.shape
+	print Xtrain_shape
+	
+	for j in range( 1,  Xtrain_shape[0], 100 ):
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+			newX_test = Xtrain[ lower : upper, : ]
+			newY_test = Ytrain[ lower : upper ]
+			
+			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+			err_train[0,i] = KNN( newX_train, newY_train, newX_train, newY_train, j )
+			err[0,i] = KNN( newX_train, newY_train, newX_test, newY_test, j )
+		
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg < validation_err:
+			validation_err = avg
+			optimal_K = j
+			train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+
+	
+	print "initial round complete"
+
+	if optimal_err != 1:
+		for j in range( optimal_err - 100, optimal_err + 100, 10 ):
+			for i in range( num_folds ):
+				lower = i * Xtrain_shape[0] / num_folds
+				upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+				newX_test = Xtrain[ lower : upper, : ]
+				newY_test = Ytrain[ lower : upper ]
+				
+				newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+				newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+				err_train[0,i] = KNN( newX_train, newY_train, newX_train, newY_train, j )
+				err[0,i] = KNN( newX_train, newY_train, newX_test, newY_test, j )
+		
+			avg = (np.sum( err ) / float( num_folds ) )
+			if avg < validation_err:
+				validation_err = avg
+				optimal_K = j
+				train_err = (np.sum(err_train)/ float( num_folds ) )
+			print "another round: j = ", j	
+
+	return validation_err, train_err, optimal_K
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -274,7 +296,7 @@ Kernels:linear
 	rbf, with width (0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2)
 C: factor of ten from 10^(-7) to 10^3
 '''
-def SVM_train( Xtrain, Ytrain, ker = 'linear', C_valule = 1 ):
+def SVM_train( Xtrain, Ytrain, ker = 'linear', C_value = 1 ):
 	clf = SVC( kernel = ker, C = C_value )
 	clf.fit( Xtrain, Ytrain )
 	return clf
@@ -288,6 +310,48 @@ def SVM_classify( clf, Xtest ):
 def SVM_score( clf, Xtest, Ytest ):
 	accuracy = clf.score( Xtest, Ytest )
 	return ( 1 - accuracy )
+
+''' SVM() '''
+def SVM( Xtrain, Ytrain, Xtest, Ytest, ker = 'linear', C_value = 1 ):
+	clf = SVM_train( Xtrain, Ytrain, ker, C_value )
+	return SVM_score( clf, Xtest, Ytest )
+
+'''
+K_Fold_Cross_Validation_SVM()
+'''
+def K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'linear', num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_K = 0
+	Xtrain_shape = Xtrain.shape
+	print Xtrain_shape
+	arr = [ 0.01, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0 ]
+	
+	for j in arr:
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+			newX_test = Xtrain[ lower : upper, : ]
+			newY_test = Ytrain[ lower : upper ]
+			
+			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+			err_train[0,i] = SVM( newX_train, newY_train, newX_train, newY_train, ker, j )
+			err[0,i] = SVM( newX_train, newY_train, newX_test, newY_test, ker, j )
+		
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg < validation_err:
+			validation_err = avg
+			optimal_K = j
+			train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+	
+	return validation_err, train_err, optimal_K
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -310,11 +374,65 @@ def logistic_regression_score( clf, Xtest, Ytest ):
 	accuracy = clf.score( Xtest, Ytest )
 	return ( 1 - accuracy )
 
+''' logistic_regression() '''
+def logistic_regression( Xtrain, Ytrain, Xtest, Ytest, C_value = 1 ):
+	Xtrain = Xtrain.astype( int )
+	Ytrain = Ytrain.astype( int )
+	Xtest = Xtest.astype( int )
+	Ytest = Ytest.astype( int )
+	clf = logistic_regression_train( Xtrain, Ytrain, C_value )
+	err = logistic_regression_score( clf, Xtest, Ytest )
+	return err
+
+'''
+K_Fold_Cross_Validation_logistic_regression()
+'''
+def K_Fold_crossValidation_logistic_regression( Xtrain, Ytrain, num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_K = 0
+	Xtrain_shape = Xtrain.shape
+	print Xtrain_shape
+	#arr = [ 0.01, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0 ]	
+	arr = np.linspace( 0.01, 10, 200 )	
+
+	for j in arr:
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+			newX_test = Xtrain[ lower : upper, : ]
+			newY_test = Ytrain[ lower : upper ]
+			
+			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+
+			newX_train = newX_train.astype( int )
+			newY_train = newY_train.astype( int )
+			newX_test = newX_test.astype( int )
+			newY_test = newY_test.astype( int )
+			
+			err_train[0,i] = logistic_regression( newX_train, newY_train, newX_train, newY_train, j )
+			err[0,i] = logistic_regression( newX_train, newY_train, newX_test, newY_test, j )
+		
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg < validation_err:
+			validation_err = avg
+			optimal_K = j
+			train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+
+	
+	return validation_err, train_err, optimal_K
+
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 ''' random_forest_train() '''
 def random_forest_train( Xtrain, Ytrain, num_of_trees = 10, depth = None ):
-	clf = RandomForestClassifier( n_estimator = num_of_trees, max_depth = depth )
+	clf = RandomForestClassifier( n_estimators = num_of_trees, max_depth = depth )
 	clf.fit( Xtrain, Ytrain )
 	return clf
 
@@ -328,13 +446,102 @@ def random_forest_score( clf, Xtest, Ytest ):
 	accuracy = clf.score( Xtest,Ytest )
 	return ( 1 - accuracy )
 
+''' random_forest() '''
+def random_forest( Xtrain, Ytrain, Xtest, Ytest, num_of_trees = 10, depth = None ):
+	clf = random_forest_train( Xtrain, Ytrain, num_of_trees, depth )
+	err = random_forest_score( clf, Xtest, Ytest )
+	return err
+
+''' K_Fold_crossValidation_random_forest() '''
+def K_Fold_crossValidation_Random_Forest( Xtrain, Ytrain, num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_depth = 0
+	Xtrain_shape = Xtrain.shape
+	arr = np.linspace( 1, 100, 100 )
+	arr = arr.astype( int )
+	
+	#for j in range( 1,  Xtrain_shape[0], 100 ):
+	for j in arr:
+		for i in range( num_folds ):
+			lower = i * Xtrain_shape[0] / num_folds
+			upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+			newX_test = Xtrain[ lower : upper, : ]
+			newY_test = Ytrain[ lower : upper ]
+			
+			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+			err_train[0,i] = random_forest( newX_train, newY_train, newX_train, newY_train, num_of_trees = j )
+			err[0,i] = random_forest( newX_train, newY_train, newX_test, newY_test, num_of_trees = j )
+		
+		avg = (np.sum( err ) / float( num_folds ) )
+		if avg < validation_err:
+			validation_err = avg
+			optimal_depth = j
+			train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+
+	return validation_err, train_err, optimal_depth
+
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 ''' adaboost_train( ) '''
 def adaboost_train( Xtrain, Ytrain, num_of_estimator = 50, learningRate = 1.0 ):
-	clf = AdaBoostClassifier( n_estimator = num_of_estimator, learning_rate = learningRate )
+	clf = AdaBoostClassifier( n_estimators = num_of_estimator, learning_rate = learningRate )
 	clf.fit( Xtrain, Ytrain )
 	return clf
+
+''' adaboost() '''
+def adaboost( Xtrain, Ytrain, Xtest, Ytest, num_of_estimator = 50, learningRate = 1.0 ):
+	clf = adaboost_train( Xtrain, Ytrain, num_of_estimator, learningRate )
+	err = general_score( clf, Xtest, Ytest )
+	return err
+
+''' K_Fold_crossValidation_Adaboost() '''
+def K_Fold_crossValidation_Adaboost( Xtrain, Ytrain, num_folds = 5 ):
+	print "Cross Validating, %s folds..." %(num_folds)
+	err =  -1 * np.ones( [1, num_folds] )
+	err_train = -1 * np.ones( [1, num_folds] )
+	validation_err = 9999999.0
+	train_err = 9999999.0
+	optimal_rate = 0
+	Xtrain_shape = Xtrain.shape
+	arr1 = np.linspace( 1, 100, 100 )
+	arr1 = arr1.astype( int )
+	arr2 = np.linspace( 0.01, 5, 10 )
+	optimal_estimator = 0
+		
+
+	#for j in range( 1,  Xtrain_shape[0], 100 ):
+	for j in arr1:
+		for k in arr2:
+			for i in range( num_folds ):
+				lower = i * Xtrain_shape[0] / num_folds
+				upper = lower + ( Xtrain_shape[0] / num_folds)
+			
+				newX_test = Xtrain[ lower : upper, : ]
+				newY_test = Ytrain[ lower : upper ]
+			
+				newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
+				newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
+			
+				err_train[0,i] = adaboost( newX_train, newY_train, newX_train, newY_train, num_of_estimator = j, learningRate = k )
+				err[0,i] = adaboost( newX_train, newY_train, newX_test, newY_test, num_of_estimator = j, learningRate = k )
+			
+			avg = (np.sum( err ) / float( num_folds ) )
+			if avg < validation_err:
+				validation_err = avg
+				optimal_rate = k
+				optimal_estimator = j
+				train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j	
+
+	return validation_err, train_err, optimal_rate
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -344,9 +551,19 @@ Multi-layer Perceptron classifier
 momentum >= 0, momentum <= 1
 '''
 def MLPClassifier_train( Xtrain, Ytrain, num_layers = (100,), moment = 0.9 ):
-	clf = MLPClassifier( hidder_layer_sizes = num_layers, momentum = moment )
-	clf.fit( Xtrain, Xtest )
+	clf = MLPClassifier( hidden_layer_sizes = num_layers, momentum = moment )
+	clf.fit( Xtrain, Ytrain )
 	return clf
+
+''' MLP() '''
+def MLP( Xtrain, Ytrain, Xtest, Ytest, num_layers = {100,}, moment = 0.9 ):
+	Xtrain = Xtrain.astype( int )
+	Xtest = Xtest.astype( int )
+	Ytrain = Ytrain.astype( int )
+	Ytest = Ytest.astype( int )
+	clf = MLPClassifier_train( Xtrain, Ytrain, num_layers, moment )
+	err = general_score( clf, Xtest, Ytest )
+	return err
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -359,6 +576,10 @@ def general_classify( classifier, Xtest ):
 def general_score( classifier, Xtest, Ytest ):
 	accuracy = classifier.score( Xtest, Ytest )
 	return ( 1 - accuracy )
+
+''' K_Fold_crossValidation_general() '''
+def K_Fold_crossValidation_general( Xtrain, Ytrain, num_folds = 5, classifier = 'decision_tree' ):
+	print "Cross Validating on ", classifier
 
 ''' testFunction() '''
 def testFunction():
