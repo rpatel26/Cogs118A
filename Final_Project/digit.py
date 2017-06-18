@@ -48,6 +48,7 @@ def convertLabels( Y, label ):
 Ytest = convertLabels( Ytest, 1 )
 Ytrain = convertLabels( Ytrain, 1 )
 
+print "Handwritten Digit Dataset\n"
 ''' Decision Tree Classifier '''
 val_err, train_err, max_depth = classifier.K_Fold_crossValidation_Decision_Tree( Xtrain, Ytrain )
 test_err = classifier.decision_tree( Xtrain, Ytrain, Xtest, Ytest, depth = max_depth )
@@ -68,7 +69,6 @@ print "Testing Error = ", test_err
 print "Optimal K = ", opt_K
 print "\n"
 
-
 ''' SVM - linear kernel '''
 val_err, train_err, opt_C = classifier.K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'linear' )
 test_err = classifier.SVM( Xtrain, Ytrain, Xtest, Ytest, ker = 'linear', C_value = opt_C )
@@ -78,7 +78,6 @@ print "Training Error = ", train_err
 print "Testing Error = ", test_err
 print "Optimal C = ", opt_C
 print "\n"
-
 
 ''' SVM - RBF kernel '''
 val_err, train_err, opt_C = classifier.K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'rbf' )

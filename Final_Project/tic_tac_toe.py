@@ -54,7 +54,6 @@ print "Testing Error = ", test_err
 print "Optimal K = ", opt_K
 print "\n"
 
-
 ''' SVM - linear kernel '''
 val_err, train_err, opt_C = classifier.K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'linear' )
 test_err = classifier.SVM( Xtrain, Ytrain, Xtest, Ytest, ker = 'linear', C_value = opt_C )
@@ -64,7 +63,6 @@ print "Training Error = ", train_err
 print "Testing Error = ", test_err
 print "Optimal C = ", opt_C
 print "\n"
-
 
 ''' SVM - RBF kernel '''
 val_err, train_err, opt_C = classifier.K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'rbf' )
@@ -76,7 +74,6 @@ print "Testing Error = ", test_err
 print "Optimal C = ", opt_C
 print "\n"
 
-
 ''' Logistic Regression '''
 val_err, train_err, opt_C = classifier.K_Fold_crossValidation_logistic_regression( Xtrain, Ytrain )
 test_err = classifier.logistic_regression( Xtrain, Ytrain, Xtest, Ytest, C_value = opt_C )
@@ -86,7 +83,6 @@ print "Training Error = ", train_err
 print "Testing Error = ", test_err
 print "Optimal C = ", opt_C
 print "\n"
-
 
 ''' Random Forest '''
 val_err, train_err, opt_num_of_trees, opt_depth = classifier.K_Fold_crossValidation_Random_Forest( Xtrain, Ytrain )
@@ -98,7 +94,6 @@ print "Testing Error = ", test_err
 print "Optimal Number of Trees = ", opt_num_of_trees
 print "Optimal Depth = ", opt_depth
 print "\n"
-
 
 ''' Adaboost '''
 val_err, train_err, opt_num_of_estimator, opt_rate = classifier.K_Fold_crossValidation_Adaboost( Xtrain, Ytrain )

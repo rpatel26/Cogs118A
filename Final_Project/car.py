@@ -88,7 +88,7 @@ print "Car Evaluation Dataset"
 
 ''' Splitting data '''
 print "\nTraining Size = 80%\n"
-Xtrain, Xtest, Ytrain, Ytest = classifier.splitData( X, Y, 0.2 )
+Xtrain, Xtest, Ytrain, Ytest = classifier.splitData( X, Y, 0.4 )
 
 ''' Decision Tree Classifier '''
 val_err, train_err, max_depth = classifier.K_Fold_crossValidation_Decision_Tree( Xtrain, Ytrain )

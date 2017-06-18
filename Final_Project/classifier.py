@@ -288,6 +288,10 @@ def K_Fold_crossValidation_KNN( Xtrain, Ytrain, num_folds = 5 ):
 			newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
 			newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
 			
+			newX_train_Shape = newX_train.shape
+			if j >= newX_train_Shape[0]:
+				break
+
 			err_train[0,i] = KNN( newX_train, newY_train, newX_train, newY_train, j )
 			err[0,i] = KNN( newX_train, newY_train, newX_test, newY_test, j )
 		
@@ -309,6 +313,10 @@ def K_Fold_crossValidation_KNN( Xtrain, Ytrain, num_folds = 5 ):
 				newX_train = np.delete( Xtrain, range( lower, (upper + 1) ), 0 )
 				newY_train = np.delete( Ytrain, range( lower, (upper + 1) ), 0 )
 			
+				newX_train_Shape = newX_train.shape
+				if j >= newX_train_Shape[0]:
+					break
+
 				err_train[0,i] = KNN( newX_train, newY_train, newX_train, newY_train, j )
 				err[0,i] = KNN( newX_train, newY_train, newX_test, newY_test, j )
 		
@@ -380,7 +388,7 @@ def K_Fold_crossValidation_SVM( Xtrain, Ytrain, ker = 'linear', num_folds = 5 ):
 			validation_err = avg
 			optimal_C = j
 			train_err = (np.sum(err_train)/ float( num_folds ) )
-	
+		print j	
 	return validation_err, train_err, optimal_C
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -451,7 +459,6 @@ def K_Fold_crossValidation_logistic_regression( Xtrain, Ytrain, num_folds = 5 ):
 			validation_err = avg
 			optimal_C = j
 			train_err = (np.sum(err_train)/ float( num_folds ) )
-	
 	return validation_err, train_err, optimal_C
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -513,6 +520,7 @@ def K_Fold_crossValidation_Random_Forest( Xtrain, Ytrain, num_folds = 5 ):
 				optimal_depth = k
 				optimal_num_of_trees = j
 				train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j
 	return validation_err, train_err, optimal_num_of_trees, optimal_depth
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''
@@ -564,6 +572,7 @@ def K_Fold_crossValidation_Adaboost( Xtrain, Ytrain, num_folds = 5 ):
 				optimal_rate = k
 				optimal_estimator = j
 				train_err = (np.sum(err_train)/ float( num_folds ) )
+		print j
 	return validation_err, train_err, optimal_estimator, optimal_rate
 
 '''"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""'''

@@ -1,0 +1,44 @@
+Tic-Tac-Toe Dataset
+
+Training Size = 80%
+
+Decision Tree Classifier
+
+Validation Error =  0.0562091503268
+Training Error =  0.0
+Testing Error =  0.0364583333333
+Optimal Depth =  401
+
+
+K Nearest Neighbor Classifier
+
+Validation Error =  0.202614379085
+Training Error =  0.0
+Testing Error =  0.161458333333
+Optimal K =  1
+
+
+SVM - Linear Kernel Classifier
+
+Validation Error =  0.0130718954248
+Training Error =  0.0130718954248
+Testing Error =  0.03125
+Optimal C =  0.5
+
+
+SVM - RBF Kernel Classifier
+
+Validation Error =  0.0130718954248
+Training Error =  0.0130718954248
+Testing Error =  0.03125
+Optimal C =  3.5
+
+
+Logistic Regression classifier
+
+Validation Error =  0.0130718954248
+Training Error =  0.0130718954248
+Testing Error =  0.03125
+Optimal C =  1.46582914573
+
+
