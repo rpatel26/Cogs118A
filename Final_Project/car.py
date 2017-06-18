@@ -10,25 +10,81 @@ def convertFeatures( X ):
 	XShape = X.shape
 
 	for row in range( XShape[0] ):
-		for col in range( XShape[1] ):
-			if newX[ row, col ] == 'x':
-				newX[ row, col ] = 1
-			elif newX[ row, col ] == 'o':
-				newX[ row, col ] = 2
-			elif newX[ row, col ] == 'b':
-				newX[ row, col ] = 3
-			else:
-				print "Error converting labels"
-				break
 
-	return newX
+		''' Fixing buying '''
+		if newX[ row, 0 ] == 'low':
+			newX[ row, 0 ] = 1
+		elif newX[ row, 0 ] == 'med':
+			newX[ row, 0 ] = 2
+		elif newX[ row, 0 ] == 'high':
+			newX[ row, 0 ] = 3
+		elif newX[ row, 0 ] == 'vhigh':
+			newX[ row, 0 ] = 4
+		else:
+			newX[ row, 0 ] = 5
 
-''' Fetcing data '''
-my_list = classifier.readFile( 'tic-tac-toe.csv' )
-X, Y = classifier.getLabel( my_list, 'positive' )
+		''' Fixing maint '''	
+		if newX[ row, 1 ] == 'low':
+			newX[ row, 1 ] = 1
+		elif newX[ row, 1 ] == 'med':
+			newX[ row, 1 ] = 2
+		elif newX[ row, 1 ] == 'high':
+			newX[ row, 1 ] = 3
+		elif newX[ row, 1 ] == 'vhigh':
+			newX[ row, 1 ] = 4
+		else:
+			newX[ row, 1 ] = 5
+
+		''' Fixing door '''
+		if newX[ row, 2 ] == "5more":
+			newX[ row, 2 ] = 4
+		elif newX[ row, 2 ] == '4':
+			newX[ row, 2 ] = 3
+		elif newX[ row, 2 ] == '3':
+			newX[ row, 2 ] = 2
+		elif newX[ row, 2 ] == '2':
+			newX[ row, 2 ] = 1
+		else:
+			newX[ row, 2 ] = 5
+
+		''' Fixing person '''
+		if newX[ row, 3 ] == '2':
+			newX[ row, 3 ] = 1
+		elif newX[ row, 3 ] == '3':
+			newX[ row, 3 ] = 2
+		elif newX[ row, 3 ] == 'more':
+			newX[ row, 3 ] = 3
+		else:
+			newX[ row, 3 ] = 4
+
+		''' Fixing lug_boot '''
+		if newX[ row, 4 ] == 'small':
+			newX[ row, 4 ] = 1
+		elif newX[ row, 4 ] == 'med':
+			newX[ row, 4 ] = 2
+		elif newX[ row, 4 ] == 'big':
+			newX[ row, 4 ] = 3
+		else:
+			newX[ row, 4 ] = 4
+
+		''' Fixing safety '''
+		if newX[ row, 5 ] == 'low':
+			newX[ row, 5 ] = 1
+		elif newX[ row, 5 ] == 'med':
+			newX[ row, 5 ] = 2
+		elif newX[ row, 5 ] == 'high':
+			newX[ row, 5 ] = 3
+		else:
+			newX[ row, 5 ] = 4
+
+	return X
+
+''' Fetching Data '''
+my_list = classifier.readFile( 'car_evals.csv' )
+X, Y = classifier.getLabel( my_list, 'unacc' )
 X = convertFeatures( X )
 X = classifier.One_Hot_Encoding( X )
-print "Tic-Tac-Toe Dataset"
+print "Car Evaluation Dataset"
 
 ''' Splitting data '''
 print "\nTraining Size = 80%\n"
