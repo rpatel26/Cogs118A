@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 
 ''' Loading Data '''
 data = sio.loadmat( 'ionosphere.mat' )
@@ -242,7 +243,7 @@ def crossValidationScore( clf, Xtrain, Ytrain, num_of_folds = 5 ):
 	scores = cross_val_score( clf, Xtrain, Ytrain, cv = num_of_folds )
 	print "Scores = ", scores	
 
-def neural_network_score( clf, Xtest, Ytest):
+def general_score( clf, Xtest, Ytest):
 	accuracy = clf.score( Xtest, Ytest )
 	print "accuracy = ", accuracy
 	print "error = ", ( 1 - accuracy )
@@ -259,7 +260,6 @@ print "Starting Decision Tree Classifier..."
 '''-------------------------------------- 80% Training, 20% Testing --------------------------------------------'''
 Xtrain, Xtest, Ytrain, Ytest = splitData( X, Y, 0.2 )
 clf = decision_tree_fit( Xtrain, Ytrain )
-crossValidationScore( clf, Xtrain, Ytrain, num_of_folds = 5 )
 #neural_network_score( clf, Xtest, Ytest )
 
 '''
